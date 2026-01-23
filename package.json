@@ -1,0 +1,37 @@
+{
+  "name": "gym-tracker-backend",
+  "version": "1.0.0",
+  "description": "Backend API for gym workout tracker application",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "migrate:up": "node-pg-migrate up",
+    "migrate:down": "node-pg-migrate down",
+    "migrate:create": "node-pg-migrate create"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/grantfountain-projs/gym-tracker-backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/grantfountain-projs/gym-tracker-backend/issues"
+  },
+  "homepage": "https://github.com/grantfountain-projs/gym-tracker-backend#readme",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.17.2"
+  },
+  "devDependencies": {
+    "node-pg-migrate": "^8.0.4",
+    "nodemon": "^3.1.11"
+  }
+}
