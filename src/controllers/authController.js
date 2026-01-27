@@ -64,4 +64,23 @@ const login = async (req, res) => {
     }
 }
 
-export { register, login };
+const me = async (req, res) => {
+    const {userId} = req.user;
+    
+    try {
+        const findUserById = await pool.query('SELECT id, email, created_at FROM users WHERE id = $1', [userId]);
+
+        if (findUserById.rows.length === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const user = findUserById.rows[0];
+        return res.status(200).json({ user: user});
+
+    } catch (error) {
+        return res.status(500).json({ message: 'Server error', error: error.message });
+    }
+
+}
+
+export { register, login, me };
