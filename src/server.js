@@ -2,6 +2,7 @@ import express from 'express'
 import dotenv from 'dotenv'
 import pool from './config/db.js'
 import authRouter from './routes/auth.js'
+import workoutRouter from './routes/workouts.js'
 
 dotenv.config()
 
@@ -10,6 +11,7 @@ const app = express()
 app.use(express.json());
 
 app.use('/auth', authRouter);
+app.use('/workouts', workoutRouter);
 
 const port = process.env.PORT || 3000;
 
