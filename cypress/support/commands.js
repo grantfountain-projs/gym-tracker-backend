@@ -1,25 +1,35 @@
-// ***********************************************
-// This example commands.js shows you how to
-// create various custom commands and overwrite
-// existing commands.
-//
-// For more comprehensive examples of custom
-// commands please read more here:
-// https://on.cypress.io/custom-commands
-// ***********************************************
-//
-//
-// -- This is a parent command --
-// Cypress.Commands.add('login', (email, password) => { ... })
-//
-//
-// -- This is a child command --
-// Cypress.Commands.add('drag', { prevSubject: 'element'}, (subject, options) => { ... })
-//
-//
-// -- This is a dual command --
-// Cypress.Commands.add('dismiss', { prevSubject: 'optional'}, (subject, options) => { ... })
-//
-//
-// -- This will overwrite an existing command --
-// Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
+// Custom command to register a user and return their auth token
+Cypress.Commands.add('loginAndGetToken', () => {
+    const timestamp = Date.now();
+    const testEmail = `test${timestamp}@example.com`;
+    const testPassword = 'password123';
+    
+    return cy.request({
+      method: 'POST',
+      url: 'http://localhost:3000/auth/register',
+      body: {
+        email: testEmail,
+        password: testPassword
+      }
+    }).then((response) => {
+      return response.body.token;
+    });
+});
+
+// Create a workout and return its ID
+Cypress.Commands.add('createWorkoutWithToken', (token) => {
+    const timestamp = Date.now();
+    return cy.request({
+      method: 'POST',
+      url: 'http://localhost:3000/workouts',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      },
+      body: {
+        date: '2026-02-03',
+        notes: `Test workout ${timestamp}`
+      }
+    }).then((response) => {
+      return response.body.workout.id;
+    });
+});
