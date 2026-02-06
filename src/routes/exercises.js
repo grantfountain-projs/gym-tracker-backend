@@ -4,9 +4,9 @@ import authMiddleware from '../middleware/auth.js';
 
 const router = express.Router();
 
-router.get('/', authMiddleware, getAllExercises);
+router.get('/', getAllExercises);
 
-router.get('/:id', authMiddleware, getExerciseById);
+router.get('/:id', getExerciseById);
 
 router.post('/', authMiddleware, createExercise);
 

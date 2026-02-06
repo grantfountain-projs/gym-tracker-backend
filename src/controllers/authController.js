@@ -19,7 +19,19 @@ const register = async (req, res) => {
 
         const hash = await bcrypt.hash(password, saltRounds);
         const insertUser = await pool.query('INSERT INTO users (email, password_hash) VALUES ($1, $2) RETURNING *', [email, hash]);
-        return res.status(201).json({ message: "Successfully Registered!" })
+
+        // Get the newly created user
+        const newUser = insertUser.rows[0];
+        
+        // Create payload
+        const payload = {
+            userId: newUser.id,
+            email: newUser.email
+        };
+        
+        // Sign token
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '7d' });
+        return res.status(201).json({ message: "Successfully Registered!", token: token });
 
     } catch (error) {
         return res.status(500).json({ message: "Server error", error: error.message });
