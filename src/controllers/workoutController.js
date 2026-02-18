@@ -47,11 +47,13 @@ const createWorkout = async (req, res) => {
 const updateWorkout = async (req, res) => {
     const { id } = req.params;
     const { userId } = req.user;
-    const { date, notes} = req.body;
+    const { date, notes, completed_at } = req.body;
 
     try {
-        const updatedWorkout = await pool.query('UPDATE workouts SET date = $1, notes = $2 WHERE id = $3 AND user_id = $4 RETURNING *', 
-            [date, notes, id, userId]);
+        const updatedWorkout = await pool.query(
+            'UPDATE workouts SET date = $1, notes = $2, completed_at = $3 WHERE id = $4 AND user_id = $5 RETURNING *', 
+            [date, notes, completed_at, id, userId]  // Added completed_at
+        );
         if (updatedWorkout.rows.length === 0) {
             return res.status(404).json({ message: 'Workout not found' });
         }
