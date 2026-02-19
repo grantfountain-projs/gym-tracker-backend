@@ -10,7 +10,7 @@ router.post('/login', login);
 
 router.get('/me', authMiddleware, me);
 
-
+router.delete('/me', authMiddleware, deleteUser);
 
 
 export default router;
