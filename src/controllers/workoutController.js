@@ -136,8 +136,85 @@ const getWorkoutStats = async (req, res) => {
     }
 };
 
+const getWorkoutHistory = async (req, res) => {
+    const { userId } = req.user;
+
+    try {
+        // One query: join workouts to exercises to sets
+        // LEFT JOINs so workouts with no exercises (or exercises with no sets) still appear
+        const result = await pool.query(
+            `SELECT 
+                w.id           AS workout_id,
+                w.date,
+                w.notes,
+                w.completed_at,
+                e.id           AS exercise_id,
+                e.name         AS exercise_name,
+                e.muscle_group,
+                ws.id          AS set_id,
+                ws.set_number,
+                ws.reps,
+                ws.weight,
+                ws.rpe
+             FROM workouts w
+             LEFT JOIN workout_sets ws ON ws.workout_id = w.id
+             LEFT JOIN exercises e ON e.id = ws.exercise_id
+             WHERE w.user_id = $1 AND w.completed_at IS NOT NULL
+             ORDER BY w.date DESC, e.name ASC, ws.set_number ASC`,
+            [userId]
+        );
+
+        // Reshape flat rows into nested workout objects
+        const workoutsMap = new Map();
+
+        for (const row of result.rows) {
+            if (!workoutsMap.has(row.workout_id)) {
+                workoutsMap.set(row.workout_id, {
+                    id: row.workout_id,
+                    date: row.date,
+                    notes: row.notes,
+                    completed_at: row.completed_at,
+                    exercises: new Map(),
+                });
+            }
+            const workout = workoutsMap.get(row.workout_id);
+        
+            if (!row.exercise_id) continue;
+        
+            if (!workout.exercises.has(row.exercise_id)) {
+                workout.exercises.set(row.exercise_id, {
+                    id: row.exercise_id,
+                    name: row.exercise_name,
+                    muscle_group: row.muscle_group,
+                    sets: [],
+                });
+            }
+            const exercise = workout.exercises.get(row.exercise_id);
+        
+            if (!row.set_id) continue;
+        
+            exercise.sets.push({
+                id: row.set_id,
+                set_number: row.set_number,
+                reps: row.reps,
+                weight: row.weight,
+                rpe: row.rpe,
+            });
+        }
+
+        // Convert Maps to Arrays for JSON serialization
+        const history = Array.from(workoutsMap.values()).map(workout => ({
+            ...workout,
+            exercises: Array.from(workout.exercises.values()),
+        }));
+
+        return res.status(200).json({ history });
+
+    } catch (error) {
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
 
 
 
-
-export { getAllWorkouts, getWorkoutById, createWorkout, updateWorkout, deleteWorkout, getWorkoutStats };
+export { getAllWorkouts, getWorkoutById, createWorkout, updateWorkout, deleteWorkout, getWorkoutStats, getWorkoutHistory };
