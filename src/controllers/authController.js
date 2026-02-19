@@ -6,8 +6,16 @@ const saltRounds = 10
 
 const register = async (req, res) => {
     const { email, password } = req.body; 
+    
+    // Basic presence check
     if (!email || !password) {
-        return res.status(400).json({ message: "All fields are required" });
+        return res.status(400).json({ message: 'Email and password are required' });
+    }
+
+    // Email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: 'Invalid email format' });
     }
     
     try {
