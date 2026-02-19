@@ -80,10 +80,65 @@ const deleteWorkout = async (req, res) => {
     }
 }
 
+const getWorkoutStats = async (req, res) => {
+    const { userId } = req.user;
+
+    try {
+        // Total completed workouts
+        const totalResult = await pool.query(
+            'SELECT COUNT(*) FROM workouts WHERE user_id = $1 AND completed_at IS NOT NULL',
+            [userId]
+        );
+
+        // This week's completed workouts (week starts Monday)
+        const thisWeekResult = await pool.query(
+            `SELECT COUNT(*) FROM workouts 
+             WHERE user_id = $1 
+             AND completed_at IS NOT NULL 
+             AND completed_at >= date_trunc('week', NOW())`,
+            [userId]
+        );
+
+        // Streak - get distinct completed days ordered by most recent
+        const streakResult = await pool.query(
+            `SELECT DISTINCT DATE(completed_at) as day 
+             FROM workouts 
+             WHERE user_id = $1 AND completed_at IS NOT NULL 
+             ORDER BY day DESC`,
+            [userId]
+        );
+
+        // Calculate streak by checking for consecutive days
+        let streak = 0;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        for (let i = 0; i < streakResult.rows.length; i++) {
+            const workoutDay = new Date(streakResult.rows[i].day);
+            workoutDay.setHours(0, 0, 0, 0);
+            const expectedDay = new Date(today);
+            expectedDay.setDate(today.getDate() - i);
+
+            if (workoutDay.getTime() === expectedDay.getTime()) {
+                streak++;
+            } else {
+                break;
+            }
+        }
+
+        return res.status(200).json({
+            totalWorkouts: parseInt(totalResult.rows[0].count),
+            thisWeek: parseInt(thisWeekResult.rows[0].count),
+            streak
+        });
+
+    } catch (error) {
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
 
 
 
 
 
-
-export { getAllWorkouts, getWorkoutById, createWorkout, updateWorkout, deleteWorkout };
+export { getAllWorkouts, getWorkoutById, createWorkout, updateWorkout, deleteWorkout, getWorkoutStats };
