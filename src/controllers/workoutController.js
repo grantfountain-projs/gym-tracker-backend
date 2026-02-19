@@ -111,13 +111,12 @@ const getWorkoutStats = async (req, res) => {
         // Calculate streak by checking for consecutive days
         let streak = 0;
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const todayUTC = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate()));
 
         for (let i = 0; i < streakResult.rows.length; i++) {
             const workoutDay = new Date(streakResult.rows[i].day);
-            workoutDay.setHours(0, 0, 0, 0);
-            const expectedDay = new Date(today);
-            expectedDay.setDate(today.getDate() - i);
+            const expectedDay = new Date(todayUTC);
+            expectedDay.setUTCDate(todayUTC.getUTCDate() - i);
 
             if (workoutDay.getTime() === expectedDay.getTime()) {
                 streak++;
