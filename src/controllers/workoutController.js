@@ -84,22 +84,25 @@ const getWorkoutStats = async (req, res) => {
     const { userId } = req.user;
 
     try {
-        // Total completed workouts
+        // Total completed workouts, only count ones with sets
         const totalResult = await pool.query(
-            'SELECT COUNT(*) FROM workouts WHERE user_id = $1 AND completed_at IS NOT NULL',
+            `SELECT COUNT(DISTINCT w.id) FROM workouts w
+            INNER JOIN workout_sets ws ON ws.workout_id = w.id
+            WHERE w.user_id = $1 AND w.completed_at IS NOT NULL`,
             [userId]
         );
 
-        // This week's completed workouts (week starts Monday)
+        // This week
         const thisWeekResult = await pool.query(
-            `SELECT COUNT(*) FROM workouts 
-             WHERE user_id = $1 
-             AND completed_at IS NOT NULL 
-             AND completed_at >= date_trunc('week', NOW())`,
+            `SELECT COUNT(DISTINCT w.id) FROM workouts w
+            INNER JOIN workout_sets ws ON ws.workout_id = w.id
+            WHERE w.user_id = $1 
+            AND w.completed_at IS NOT NULL 
+            AND w.completed_at >= date_trunc('week', NOW())`,
             [userId]
         );
 
-        // Streak - get distinct completed days ordered by most recent
+        // Streak, get distinct completed days ordered by most recent
         const streakResult = await pool.query(
             `SELECT DISTINCT DATE(completed_at) as day 
              FROM workouts 
