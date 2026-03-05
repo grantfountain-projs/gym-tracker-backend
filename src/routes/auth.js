@@ -23,7 +23,7 @@ const loginLimiter = rateLimit({
 
 router.post('/register', registerLimiter, register);
 
-router.post('/login', loginLimiter, login);
+router.post('/login', process.env.NODE_ENV === 'production' ? loginLimiter : (req, res, next) => next(), login);
 
 router.get('/me', authMiddleware, me);
 
