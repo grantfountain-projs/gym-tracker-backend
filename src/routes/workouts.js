@@ -1,5 +1,5 @@
 import express from 'express'
-import { getAllWorkouts, getWorkoutById, createWorkout, updateWorkout, deleteWorkout, getWorkoutStats, getWorkoutHistory } from '../controllers/workoutController.js'
+import { getAllWorkouts, getWorkoutById, createWorkout, updateWorkout, deleteWorkout, getWorkoutStats, getWorkoutHistory, getDetailedStats } from '../controllers/workoutController.js'
 import { getSetsByWorkoutId, createSet, updateSet, deleteSet } from '../controllers/setController.js'
 import authMiddleware from '../middleware/auth.js';
 
@@ -9,6 +9,7 @@ const router = express.Router();
 router.get('/', authMiddleware, getAllWorkouts);
 router.get('/stats', authMiddleware, getWorkoutStats);
 router.get('/history', authMiddleware, getWorkoutHistory);
+router.get('/stats/detailed', authMiddleware, getDetailedStats);
 router.get('/:id', authMiddleware, getWorkoutById);
 router.post('/', authMiddleware, createWorkout);
 router.put('/:id', authMiddleware, updateWorkout);

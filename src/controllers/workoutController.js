@@ -218,6 +218,50 @@ const getWorkoutHistory = async (req, res) => {
     }
 };
 
+const getDetailedStats = async (req, res) => {
+    const { userId } = req.user;
+
+    try {
+        // Lifetime volume
+        const volumeResult = await pool.query(
+            `SELECT COALESCE(SUM(ws.weight * ws.reps), 0) AS lifetime_volume
+             FROM workouts w
+             INNER JOIN workout_sets ws ON ws.workout_id = w.id
+             WHERE w.user_id = $1 AND w.completed_at IS NOT NULL`,
+            [userId]
+        );
+
+        // Total completed workouts with sets
+        const totalResult = await pool.query(
+            `SELECT COUNT(DISTINCT w.id) AS total_workouts
+             FROM workouts w
+             INNER JOIN workout_sets ws ON ws.workout_id = w.id
+             WHERE w.user_id = $1 AND w.completed_at IS NOT NULL`,
+            [userId]
+        );
+
+        // Muscle group frequency
+        const muscleGroupResult = await pool.query(
+            `SELECT e.muscle_group, COUNT(*) AS set_count
+             FROM workouts w
+             INNER JOIN workout_sets ws ON ws.workout_id = w.id
+             INNER JOIN exercises e ON e.id = ws.exercise_id
+             WHERE w.user_id = $1 AND w.completed_at IS NOT NULL
+             GROUP BY e.muscle_group
+             ORDER BY set_count DESC`,
+            [userId]
+        );
+
+        return res.status(200).json({
+            lifetimeVolume: parseFloat(volumeResult.rows[0].lifetime_volume),
+            totalWorkouts: parseInt(totalResult.rows[0].total_workouts),
+            muscleGroups: muscleGroupResult.rows
+        });
+
+    } catch (error) {
+        return res.status(500).json({ message: "Server error", error: error.message });
+    }
+};
 
 
-export { getAllWorkouts, getWorkoutById, createWorkout, updateWorkout, deleteWorkout, getWorkoutStats, getWorkoutHistory };
+export { getAllWorkouts, getWorkoutById, createWorkout, updateWorkout, deleteWorkout, getWorkoutStats, getWorkoutHistory, getDetailedStats };
