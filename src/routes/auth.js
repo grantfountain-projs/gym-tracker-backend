@@ -1,6 +1,6 @@
 import express from 'express'
 import rateLimit from 'express-rate-limit';
-import { register, login, me, deleteUser} from '../controllers/authController.js'
+import { register, login, me, deleteUser, changePassword } from '../controllers/authController.js'
 import authMiddleware from '../middleware/auth.js';
 
 const router = express.Router();
@@ -29,5 +29,6 @@ router.get('/me', authMiddleware, me);
 
 router.delete('/me', authMiddleware, deleteUser);
 
+router.put('/me/password', authMiddleware, changePassword);
 
 export default router;
